@@ -120,6 +120,9 @@ select personas.BusinessEntityID,
 -- From the following table write a query in SQL to find the sum of subtotal column. Group the sum on distinct salespersonid and customerid.
 -- Rolls up the results into subtotal and running total. Return salespersonid, customerid and sum of subtotal column i.e. sum_subtotal.
 
+
+-- solution 1
+-- add where for better presentation, this query dont send the result of agregate function of our column subtotal
 select SalesPersonID,
 	   CustomerID,
 	   sum(SubTotal) as 'sum_subtotal' 
@@ -127,5 +130,61 @@ select SalesPersonID,
 	   where SalesPersonID is not null 
 	   group by SalesPersonID,CustomerID
 	   order by SalesPersonID,CustomerID
- 
 
+-- solution 2 
+-- this solutions is the same of before, but here we use rollup that send us all combinatination posible and finally add a rows with the sum of all
+-- value in aggregate_function(colum)
+
+--here we are much NULL values that means 'consumidor final', so will use coalesce to rename it, means todas las ventas de consumidor final hacia 
+-- comprador con customer id tal es ..
+
+-- because the rollup always return the total of group and total of total 
+SELECT COALESCE(CONVERT(VARCHAR,salespersonid), 'FINAL SALES') AS 'salespersonid',customerid,sum(subtotal) AS sum_subtotal
+FROM sales.salesorderheader s 
+where SalesPersonID is not null 
+GROUP BY ROLLUP(s.SalesPersonID,s.CustomerID)
+
+-- Adventure Works Ex.13
+-- From the following table write a query in SQL to find the sum of the quantity of all combination of group of distinct locationid and shelf column. 
+-- Return locationid, shelf and sum of quantity as TotalQuantity.
+
+select LocationID,
+	   Shelf,
+	   sum(Quantity) as 'totalquantity'
+
+	   from production.productinventory
+	   group by CUBE(LocationID,Shelf)
+	   order by LocationID asc
+
+-- so the cube generate the combination in this case for the twice values of group, and we'll get 
+-- en cada localidad la suma de cada estante por separado
+-- en cada localidad la suma de todos los estantes 
+-- la suma de todos los estantes en cada localidad (suma total)
+-- la suma de todas las localidades por estante(a,j,l,..) 
+
+SELECT COALESCE(CONVERT(varchar,locationid),'All location with') as 'location Id', COALESCE(shelf,'All Shelf') as 'shelf', SUM(quantity) AS TotalQuantity
+FROM production.productinventory
+GROUP BY CUBE (locationid, shelf);
+
+-- Adventure Works Ex.14
+-- From the following table write a query in SQL to find the sum of the quantity with subtotal for each locationid. 
+-- Group the results for all combination of distinct locationid and shelf column. Rolls up the results into subtotal and running total.
+-- Return locationid, shelf and sum of quantity as TotalQuantity.
+
+SELECT locationid, shelf, SUM(quantity) AS TotalQuantity
+FROM production.productinventory
+GROUP BY GROUPING SETS ( ROLLUP (locationid, shelf), CUBE (locationid, shelf),())
+
+-- en teoria el grouping sets lo usaremos para hacer una especie de union all, la cual nos permite agregar lo que seria dos querys 
+-- en una sola data de informacion
+
+
+-- Adventure Works Ex.15
+-- From the following table write a query in SQL to find the total quantity for each locationid and calculate the grand-total for all locations.
+-- Return locationid and total quantity. Group the results on locationid.
+
+select COALESCE(Convert(varchar,LocationID),'Total All Location'),
+       sum(Quantity)
+	   from Production.ProductInventory
+	   group by grouping sets ((LocationID),()) 
+	   order by LocationID
