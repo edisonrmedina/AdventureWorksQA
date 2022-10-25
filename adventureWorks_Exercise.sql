@@ -102,3 +102,30 @@ select sum(prodInv.Quantity) as 'total_quantity'
 	from production.productinventory prodInv
 	group by prodInv.LocationID*10
 
+-- Adventure Works Ex.11
+-- From the following tables write a query in SQL to find the persons whose last name starts with letter 'L'.
+-- Return BusinessEntityID, FirstName, LastName, and PhoneNumber. Sort the result on lastname and firstname.
+ 
+select personas.BusinessEntityID,
+	   personas.FirstName,
+	   personas.LastName,
+	   perPhone.PhoneNumber
+	   from [Person].[Person] as personas inner join 
+	   [Person].[PersonPhone]  as perPhone on
+	   personas.BusinessEntityID = perPhone.BusinessEntityID
+	   where [personas].[LastName] like 'L%'
+	   order by personas.LastName, personas.FirstName
+
+-- Adventure Works Ex.12
+-- From the following table write a query in SQL to find the sum of subtotal column. Group the sum on distinct salespersonid and customerid.
+-- Rolls up the results into subtotal and running total. Return salespersonid, customerid and sum of subtotal column i.e. sum_subtotal.
+
+select SalesPersonID,
+	   CustomerID,
+	   sum(SubTotal) as 'sum_subtotal' 
+	   from sales.salesorderheader	
+	   where SalesPersonID is not null 
+	   group by SalesPersonID,CustomerID
+	   order by SalesPersonID,CustomerID
+ 
+
