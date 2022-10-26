@@ -188,3 +188,59 @@ select COALESCE(Convert(varchar,LocationID),'Total All Location'),
 	   from Production.ProductInventory
 	   group by grouping sets ((LocationID),()) 
 	   order by LocationID
+
+
+-- Adventure Works Ex.16
+-- From the following table write a query in SQL to retrieve the number of employees for each City. Return city and number of employees.
+-- Sort the result in ascending order on city.
+
+select City, 
+	   count(City) as noofEmployes
+	   from Person.Address 
+	   group by city 
+	   order by City
+
+-- Adventure Works Ex.17
+-- From the following table write a query in SQL to retrieve the total sales for each year. Return the year part of order date and total due amount. 
+-- Sort the result in ascending order on year part of order date.
+
+--sol: we us datePart that allow us to get a split of the date example 11-04-2022 
+-- we send the first parameter yyyy or yy also can be other: https://learn.microsoft.com/en-us/sql/t-sql/functions/datepart-transact-sql?view=sql-server-ver16
+-- finally we can group by for this and ordered too.
+select DATEPART(yyyy,OrderDate) as 'Anio' , sum(orderHeader.TotalDue) as 'Order Amount'
+	from Sales.SalesOrderHeader as orderHeader
+	group by DATEPART(yyyy,OrderDate)
+	order by DATEPART(yyyy,OrderDate)
+
+
+-- Adventure Works Ex.18
+-- From the following table write a query in SQL to retrieve the total sales for each year. 
+-- Filter the result set for those orders where order year is on or before 2016.
+-- Return the year part of orderdate and total due amount. Sort the result in ascending order on year part of order date.  
+select DATEPART(yyyy,OrderDate) as 'Anio' , sum(orderHeader.TotalDue) as 'Order Amount'
+	from Sales.SalesOrderHeader as orderHeader
+	where DATEPART(yyyy,OrderDate)<=2016
+	group by DATEPART(yyyy,OrderDate)
+	order by DATEPART(yyyy,OrderDate)
+
+-- Adventure Works Ex.19
+-- From the following table write a query in SQL to find the contacts who are designated as a manager in various departments. 
+-- Returns ContactTypeID, name. Sort the result set in descending order
+
+select ContactTypeID,
+	   name
+	   from Person.ContactType
+	   where name like '%Manager%'
+	   order by ContactTypeID desc
+
+-- Adventure Works Ex.20
+-- From the following tables write a query in SQL to make a list of contacts who are designated as 'Purchasing Manager'. 
+-- Return BusinessEntityID, LastName, and FirstName columns. Sort the result set in ascending order of LastName, and FirstName
+
+select BEC.BusinessEntityID, PERS.LastName, PERS.FirstName 
+	from Person.Person as PERS inner join Person.BusinessEntityContact as BEC on
+	PERS.BusinessEntityID = BEC.PersonID
+	inner join Person.ContactType as PerCt on 
+	BEC.ContactTypeID = PerCt.ContactTypeID
+	where PerCt.Name like 'Purchasing Manager'
+	order by  PERS.LastName, PERS.FirstName 
