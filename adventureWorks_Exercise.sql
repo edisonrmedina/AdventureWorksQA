@@ -244,3 +244,93 @@ select BEC.BusinessEntityID, PERS.LastName, PERS.FirstName
 	BEC.ContactTypeID = PerCt.ContactTypeID
 	where PerCt.Name like 'Purchasing Manager'
 	order by  PERS.LastName, PERS.FirstName 
+
+-- Adventure Works Ex.21
+-- From the following tables write a query in SQL to retrieve the salesperson for each PostalCode who belongs to a territory and SalesYTD is not zero. 
+-- Return row numbers of each group of PostalCode, last name, salesytd, postalcode column. Sort the salesytd of each postalcode group in descending order.
+-- Shorts the postalcode in ascending order.
+
+
+--- ROW_NUMBER() over() es una agrupador sql que da mas soltura a la hora de no condicionar tanto como un group by 
+--  contamos las columnas sobre la partition hecha en cada postal code y ademas ordemos por una columna SalesYTD en este caso
+--  nos permite ademas obtener otra informacion de mas campos, cosa que no permite el group by
+
+select ROW_NUMBER() over (PARTITION BY PerAd.postalcode order by sa.SalesYTD desc) as 'Num Colum',per.LastName,sa.SalesYTD,perad.PostalCode
+	from Sales.SalesPerson Sa  
+		inner join Person.Person Per 
+		on Sa.BusinessEntityID = Per.BusinessEntityID 
+		inner join Person.Address PerAd 
+		on Sa.BusinessEntityID = PerAd.AddressID
+		
+-- Adventure Works Ex.22
+-- From the following table write a query in SQL to count the number of contacts for combination of each type and name. 
+-- Filter the output for those who have 100 or more contacts. Return ContactTypeID and ContactTypeName and BusinessEntityContact.
+-- Sort the result set in descending order on number of contacts.
+
+select CT.ContactTypeID,COUNT(CT.Name) AS nocontact,
+	   CT.Name
+	   from Person.BusinessEntityContact BEC inner join Person.ContactType CT on BEC.ContactTypeID = CT.ContactTypeID
+	   GROUP BY CT.ContactTypeID, CT.NAME
+	   HAVING COUNT(CT.Name) > 100
+	   ORDER BY nocontact DESC
+
+-- Adventure Works Ex.23
+-- From the following table write a query in SQL to retrieve the RateChangeDate, full name (first name, middle name and last name)
+-- and weekly salary (40 hours in a week) of employees. In the output the RateChangeDate should appears in date format. 
+-- Sort the output in ascending order on NameInFull.
+
+select CAST(HU.RateChangeDate AS varchar(12)),
+	   CONCAT(PE.FirstName,PE.LastName) AS full_Name , (40*HU.Rate) as SalaryInAWeak
+	   from HumanResources.EmployeePayHistory HU 
+	   join Person.Person PE on HU.BusinessEntityID = PE.BusinessEntityID
+	   order by full_Name
+
+
+-- Adventure Works Ex.24
+-- From the following tables write a query in SQL to calculate and display the latest weekly salary of each employee. 
+-- Return RateChangeDate, full name (first name, middle name and last name) and weekly salary (40 hours in a week) of employees
+-- Sort the output in ascending order on NameInFull.
+
+-- se propone dos en la primera, se muestra el sueldo de los empleados por semana, en lo que se piensa que es la ultima semana registrada
+SELECT CAST(hur.RateChangeDate as VARCHAR(10) ) AS FromDate
+        , CONCAT(LastName, ', ', FirstName, ' ', MiddleName) AS NameInFull
+        , (40 * hur.Rate) AS SalaryInAWeek
+    FROM Person.Person AS pp
+        INNER JOIN HumanResources.EmployeePayHistory AS hur
+            ON hur.BusinessEntityID = pp.BusinessEntityID
+             WHERE hur.RateChangeDate = (SELECT MAX(RateChangeDate)
+                                FROM HumanResources.EmployeePayHistory
+                                WHERE BusinessEntityID = hur.BusinessEntityID)
+    ORDER BY NameInFull;
+
+-- en la siguiente se presenta la solucion pero solo para los empleados que se registraron pago en la ultima semana de la data
+select CAST(HU.RateChangeDate AS varchar(12)),
+	   CONCAT(PE.FirstName,PE.LastName) AS full_Name , (40*HU.Rate) as SalaryInAWeak , *
+	   from HumanResources.EmployeePayHistory HU 
+	   join Person.Person PE on HU.BusinessEntityID = PE.BusinessEntityID
+	   where HU.RateChangeDate = (SELECT MAX(RateChangeDate)
+                                FROM HumanResources.EmployeePayHistory )
+
+
+-- Adventure Works Ex.25
+-- From the following table write a query in SQL to find the sum, average, count, minimum, and maximum order quentity for those orders whose id
+-- are 43659 and 43664. 
+-- Return SalesOrderID, ProductID, OrderQty, sum, average, count, max, and min order quantity.
+
+
+-- este es el caso donde group by se queda corto entonces lo que se hara es usar el over partition
+
+select SalesOrderID,ProductID,OrderQty,
+	--total de productos
+	sum(OrderQty) over(partition by SalesOrderID) as 'Total quantaty',
+	--referencia el promedio del total de las veces que aparece
+	avg(OrderQty) over(partition by SalesOrderID) as 'Avg quantaty',
+	-- cantitad de veces con el id
+	count(OrderQty) OVER (PARTITION BY SalesOrderID) AS "No of Orders"
+	--orden maxima para un producto
+    ,min(OrderQty) OVER (PARTITION BY SalesOrderID) AS "Min Quantity"
+	--orden minima de un producto 
+    ,max(OrderQty) OVER (PARTITION BY SalesOrderID) AS "Max Quantity"
+
+	from Sales.SalesOrderDetail where SalesOrderID in (43659,43664)
+	order by SalesOrderID
