@@ -322,15 +322,112 @@ select CAST(HU.RateChangeDate AS varchar(12)),
 
 select SalesOrderID,ProductID,OrderQty,
 	--total de productos
-	sum(OrderQty) over(partition by SalesOrderID) as 'Total quantaty',
+	sum(OrderQty) over(partition by SalesOrderID) as "Total quantaty product in order",
 	--referencia el promedio del total de las veces que aparece
-	avg(OrderQty) over(partition by SalesOrderID) as 'Avg quantaty',
+	avg(OrderQty) over(partition by SalesOrderID) as "Avg quantaty prdouct for single product",
 	-- cantitad de veces con el id
-	count(OrderQty) OVER (PARTITION BY SalesOrderID) AS "No of Orders"
+	count(OrderQty) OVER (PARTITION BY SalesOrderID) AS "Num of products for single product"
 	--orden maxima para un producto
-    ,min(OrderQty) OVER (PARTITION BY SalesOrderID) AS "Min Quantity"
+    ,min(OrderQty) OVER (PARTITION BY SalesOrderID) AS "Min Quantity product for single product"
 	--orden minima de un producto 
-    ,max(OrderQty) OVER (PARTITION BY SalesOrderID) AS "Max Quantity"
+    ,max(OrderQty) OVER (PARTITION BY SalesOrderID) AS "Max Quantity product for single product"
 
 	from Sales.SalesOrderDetail where SalesOrderID in (43659,43664)
 	order by SalesOrderID
+
+
+-- Adventure Works Ex.26
+-- From the following table write a query in SQL to find the sum, average, and number of order quantity for those orders whose ids are 43659 and 43664
+-- and product id starting with '71'. Return SalesOrderID, OrderNumber,ProductID, OrderQty, sum, average, and number of order quantity. 
+
+select  SalesOrderID as orderNumber ,ProductID,OrderQty as "cantidad de producto por id",
+	--total de productos in la orden
+	sum(OrderQty) over(partition by SalesOrderID) as "Total quantaty product in order",
+	--referencia el promedio del total de las veces que aparece
+	avg(OrderQty) over(partition by SalesOrderID) as "Avg quantaty prdouct for single product",
+	-- cantitad de veces con el id
+	count(OrderQty) OVER (PARTITION BY SalesOrderID) AS "count total for single products in order" 
+
+	from Sales.SalesOrderDetail where SalesOrderID in (43659,43664) and ProductID like '71%'
+
+-- Adventure Works Ex.27
+-- From the following table write a query in SQL to retrieve the total cost of each salesorderID that exceeds 100000.
+-- Return SalesOrderID, total cost.
+
+select SalesOrderID, sum(LineTotal) as "total cost order id"  
+		from sales.SalesOrderDetail 
+		group by SalesOrderID
+		having sum(LineTotal) > 100000
+		order by [total cost order id]
+
+-- Adventure Works Ex.28
+-- From the following table write a query in SQL to retrieve products whose names start with 'Lock Washer'.
+-- Return product ID, and name and order the result set in ascending order on product ID column. 
+
+select ProductID,Name
+	from Production.Product
+	where Name like 'Lock Washer%'
+	order by ProductID
+
+-- Adventure Works Ex.29
+-- Write a query in SQL to fetch rows from product table and order the result set on an unspecified column listprice.
+-- Return product ID, name, and color of the product. 
+
+-- aunque no se traiga la columna como presentacion se puede usara para odernar los datos
+
+SELECT ProductID, Name, Color  
+FROM Production.Product  
+ORDER BY ListPrice;
+
+-- Adventure Works Ex.30
+-- From the following table write a query in SQL to retrieve records of employees. 
+-- Order the output on year (default ascending order) of hiredate. Return BusinessEntityID, JobTitle, and HireDate. 
+
+
+select BusinessEntityID,
+	   JobTitle,
+	   HireDate
+	   from HumanResources.Employee
+	   order by HireDate
+
+-- Adventure Works Ex.31
+-- From the following table write a query in SQL to retrieve those persons whose last name begins with letter 'R'.
+-- Return lastname, and firstname and display the result in ascending order on firstname and descending order on lastname columns.
+
+SELECT LastName, FirstName 
+FROM Person.Person  
+WHERE LastName LIKE 'R%'  
+ORDER BY FirstName ASC, LastName DESC ;
+
+-- Adventure Works Ex.32
+-- From the following table write a query in SQL to ordered the BusinessEntityID column descendingly 
+-- when SalariedFlag set to 'true' and BusinessEntityID in ascending order when SalariedFlag set to 'false'. 
+-- Return BusinessEntityID, SalariedFlag columns.
+
+-- para este caso lo ordemaos en base al salariedFlag cuando es true entonces lo ordena el buinessEntityId descendinete
+-- para el caso contrario hace el orden para la ordenacion por defecto
+select BusinessEntityID,
+	   Case when SalariedFlag = 1 then 'true'
+	   ELSE 'false' END AS SalariedFlag
+	   from HumanResources.Employee
+	   order by case SalariedFlag when 'true' then BusinessEntityID END DESC,
+				case when SalariedFlag = 'false' then BusinessEntityID end
+
+
+-- Adventure Works Ex.33
+-- From the following table write a query in SQL to set the result in order by the column TerritoryName 
+-- when the column CountryRegionName is equal to 'United States' and by CountryRegionName for all other rows.
+
+
+-- lo que buscamos es que cuando halle en CountryRegionName el pais de EEUU ordene por TerritoryName
+-- sino es EEUU los ordene por CountryRegionName
+select BusinessEntityID,
+	   LastName,
+	   TerritoryName, 
+	   CountryRegionName 
+	   from Sales.vSalesPerson
+	   WHERE TerritoryName IS NOT NULL
+	   
+	   ORDER BY CASE CountryRegionName WHEN 'United States' THEN TerritoryName  
+         ELSE CountryRegionName END;
+	   
