@@ -430,4 +430,132 @@ select BusinessEntityID,
 	   
 	   ORDER BY CASE CountryRegionName WHEN 'United States' THEN TerritoryName  
          ELSE CountryRegionName END;
-	   
+
+-- Adventure Works Ex.34
+-- From the following table write a query in SQL to find those persons who lives in a territory and the value of salesytd except 0.
+-- Return first name, last name,row number as 'Row Number', 'Rank', 'Dense Rank' and NTILE as 'Quartile', salesytd and postalcode.
+-- Order the output on postalcode column.
+
+select * from Sales.SalesPerson
+select * from Person.Person
+select * from Person.Address
+
+select PER.FirstName,
+	PER.LastName,
+	ROW_NUMBER() OVER (ORDER BY DIR.PostalCode) as RowNumber,
+	RANK() OVER (ORDER BY DIR.PostalCode) AS "Rank",
+	-- Rank asignara valores o categoria unica a cada registro en funcion de un valor especifico, si hay dos repetidos asignara el mismo valor
+	-- pero se llevara el siguiente registro para seguir el orden implicito
+	DENSE_RANK() OVER (ORDER BY DIR.PostalCode) AS "Dense Rank",
+	-- Hace lo mismo que el rank pero sin omitir ningun registro
+	NTILE(4) OVER (ORDER BY SP.SalesYTD) AS "Quartile",
+	-- Esta funcion nos permite clasificar en base a algun campo por rangos, 1 a 100 ; 101 a 120.... y los hace caer dentro de un quartil.
+	-- 
+	SP.SalesYTD AS salesytd,
+	DIR.PostalCode AS PostalCode
+	from Sales.SalesPerson SP INNER JOIN Person.Person PER ON 
+		SP.BusinessEntityID = PER.BusinessEntityID INNER JOIN Person.Address DIR ON
+		PER.BusinessEntityID = DIR.AddressID
+	where
+	SP.TerritoryID IS NOT NULL AND
+	SP.SalesYTD <> 0
+
+-- Adventure Works Ex.35
+-- From the following table write a query in SQL to skip the first 10 rows from the sorted result set and return all remaining rows.
+
+-- existen varias formas de hacer esto.
+
+-- primera
+select * from  HumanResources.Department 
+except
+select top 10 * from  HumanResources.Department 
+
+-- segunda
+select * 
+from HumanResources.Department 
+where HumanResources.Department.DepartmentID  > 10
+order by HumanResources.Department.DepartmentID
+
+-- tercera
+select * 
+from HumanResources.Department
+order by HumanResources.Department.DepartmentID OFFSET 10 ROWS
+
+-- Existen limite y offset limit numero de filas devuelto por una consulta, y offset es el numero de filas a saltar para presentar la info.
+
+
+-- Adventure Works Ex.36
+-- From the following table write a query in SQL to skip the first 5 rows and return the next 5 rows from the sorted result set.
+
+select * 
+from HumanResources.Department
+order by HumanResources.Department.DepartmentID OFFSET 5 ROWS 
+	FETCH NEXT 5 ROWS ONLY
+-- EN MYSQL SERVER al parecer no se puede usar limit y offset juntos
+-- El recurso que presenta es FETCH NEXT 5 ROWS ONLY despues del OFFSET
+
+-- Adventure Works Ex.37
+-- From the following table write a query in SQL to list all the products that are Red or Blue in color.
+-- Return name, color and listprice.Sorts this result by the column listprice. 
+
+SELECT Name, Color, ListPrice  
+FROM Production.Product  
+WHERE Color = 'Red'  
+UNION ALL  
+SELECT Name, Color, ListPrice  
+FROM Production.Product  
+WHERE Color = 'Blue'  
+ORDER BY ListPrice ASC;
+
+SELECT Name, Color, ListPrice  
+FROM Production.Product  
+WHERE Color = 'Red' OR Color = 'Blue'
+ORDER BY ListPrice ASC
+
+-- Adventure Works Ex.38
+-- Create a SQL query from the SalesOrderDetail table to retrieve the product name and any associated sales orders.
+-- Additionally, it returns any sales orders that don't have any items mentioned in the Product table as well as any
+-- products that have sales orders other than those that are listed there. Return product name, salesorderid. 
+-- Sort the result set on product name column.
+
+SELECT PP.Name, SOD.SalesOrderID FROM Sales.SalesOrderDetail SOD FULL OUTER JOIN Production.Product PP ON 
+	SOD.ProductID = PP.ProductID
+	ORDER BY PP.Name
+
+SELECT p.Name, sod.SalesOrderID  
+FROM Production.Product AS p  
+FULL OUTER JOIN Sales.SalesOrderDetail AS sod  
+ON p.ProductID = sod.ProductID  
+ORDER BY p.Name ;
+
+	-- Para este caso nos piden que traigamos las ordenes aunque no tenga un producto conocido, y a la vez el producto aun asi no tenga 
+	-- una orden asociada
+
+
+
+-- Adventure Works Ex.39
+-- From the following table write a SQL query to retrieve the product name and salesorderid.
+-- Both ordered and unordered products are included in the result set.
+
+SELECT PP.Name, SOD.SalesOrderID FROM Sales.SalesOrderDetail SOD LEFT OUTER JOIN Production.Product PP ON 
+	SOD.ProductID = PP.ProductID
+	ORDER BY PP.Name
+
+	SELECT PP.Name, SOD.SalesOrderID FROM Sales.SalesOrderDetail SOD FULL OUTER JOIN Production.Product PP ON 
+	SOD.ProductID = PP.ProductID
+	ORDER BY PP.Name
+
+	-- LEFT OUTER JOIN === LEFT JOIN
+	-- para estos dos casos se puede apreciar que seria uno para que me traiga los pedidos con coincidencia y los tambien en donde no halla pedido con producto conociodo
+	-- en conclusion sin los nullos de la consulta anterior
+
+-- Adventure Works Ex.40
+-- From the following tables write a SQL query to get all product names and sales order IDs. Order the result set on product name column.
+
+SELECT p.Name, sod.SalesOrderID  
+FROM Production.Product AS p  
+INNER JOIN Sales.SalesOrderDetail AS sod  
+ON p.ProductID  sod.ProductID  
+ORDER BY p.Name ;
+
+-- EL LEFT Y EL INNER Nos van a traer los mismo resultados ya que los nulos estarian en la tabla de mi derecha por decirlo de alguna forma
