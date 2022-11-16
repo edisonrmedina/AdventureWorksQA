@@ -559,3 +559,98 @@ ON p.ProductID  sod.ProductID
 ORDER BY p.Name ;
 
 -- EL LEFT Y EL INNER Nos van a traer los mismo resultados ya que los nulos estarian en la tabla de mi derecha por decirlo de alguna forma
+
+select * from Sales.SalesTerritory where 
+select * from Sales.SalesPerson as SP where sp.TerritoryID is null
+
+-- Adventure Works Ex.41
+--  From the following tables write a SQL query to retrieve the territory name and BusinessEntityID.
+--  The result set includes all salespeople, regardless of whether or not they are assigned a territory.
+
+select CASE WHEN ST.Name is NULL THEN 'No Especificado' 
+		ELSE ST.Name 
+		END AS Name, 
+		SP.BusinessEntityID
+		from  Sales.SalesPerson as SP LEFT OUTER JOIN Sales.SalesTerritory as ST ON
+			SP.TerritoryID = ST.TerritoryID 
+
+
+
+-- Adventure Works Ex.42
+-- Write a query in SQL to find the employee's full name (firstname and lastname) and city from the following tables. 
+-- Order the result set on lastname then by firstname
+
+CREATE INDEX IX_PERSON_BUSSINES_ENTITY ON PERSON.person(BusinessEntityID)
+
+select CONCAT(P.FirstName,P.MiddleName,P.LastName) AS 'Nombre Completo',
+    PA.City 
+	from Person.Person as P INNER JOIN 
+		 HumanResources.Employee as RRH 
+		 ON P.BusinessEntityID = RRH.BusinessEntityID INNER JOIN 
+		 Person.BusinessEntityAddress as PBE
+		 ON RRH.BusinessEntityID = PBE.BusinessEntityID INNER JOIN
+		 Person.Address as PA
+		 ON PBE.AddressID = PA.AddressID
+		 ORDER BY P.LastName,P.FirstName
+
+-- Adventure Works Ex.43
+-- Write a SQL query to return the businessentityid,firstname and lastname columns of all persons in the person table (derived table) 
+-- with persontype is 'IN' and the last name is 'Adams'. Sort the result set in ascending order on firstname.
+-- A SELECT statement after the FROM clause is a derived table.  
+
+
+SELECT 
+	DP.BusinessEntityID,
+	DP.FirstName,
+	DP.LastName
+	FROM
+		(SELECT *
+			FROM Person.Person as P
+			WHERE P.PersonType = 'IN' and P.LastName = 'Adams') as DP
+
+-- Adventure Works Ex.44
+-- Create a SQL query to retrieve individuals from the following table with a businessentityid inside 1500,
+-- a lastname starting with 'Al', and a firstname starting with 'M'
+
+SELECT 
+	P.BusinessEntityID,
+	P.FirstName,
+	P.LastName
+	FROM Person.Person AS P
+	WHERE P.BusinessEntityID <= 1500 AND P.LastName LIKE '%Al%' AND FirstName LIKE '%M%' 
+	
+		
+-- Adventure Works Ex.45
+-- Write a SQL query to find the productid, name, and colour of the items 'Blade', 'Crown Race' and 'AWC Logo Cap' using a derived table with multiple values.
+
+
+SELECT 
+	DPROD.ProductID,
+	DPROD.Name,
+	DPROD.Color 
+		FROM (SELECT *
+				FROM Production.Product AS PROD 
+				WHERE PROD.Name IN ('Blade', 'Crown Race' , 'AWC Logo Cap')) AS DPROD
+
+
+
+-- Adventure Works Ex.46
+-- Create a SQL query to display the total number of sales orders each sales representative receives annually.
+-- Sort the result set by SalesPersonID and then by the date component of the orderdate in ascending order.
+-- Return the year component of the OrderDate, SalesPersonID, and SalesOrderID.
+
+
+WITH Sales_CTE (SalesPersonID, SalesOrderID, SalesYear)
+AS
+(
+    SELECT SalesPersonID, SalesOrderID, year(OrderDate) AS SalesYear
+    FROM Sales.SalesOrderHeader
+    WHERE SalesPersonID IS NOT NULL
+)
+
+
+SELECT SalesPersonID, COUNT(SalesOrderID) AS TotalSales, SalesYear
+FROM Sales_CTE
+GROUP BY SalesYear, SalesPersonID -- Se crea una tabla derivada, con esto podemos sacar los atributos necesarios para poder usarlos luego
+ORDER BY SalesPersonID, SalesYear; -- se agrupa por salesYear para asi contar las ventas y con la agrupacion de salesPersonid logramos agrupar a la vez por id
+								-- por ultimo ordenamos por en sentido contrario por lo que asi traemos los datos de la primera consulta 
