@@ -560,8 +560,6 @@ ORDER BY p.Name ;
 
 -- EL LEFT Y EL INNER Nos van a traer los mismo resultados ya que los nulos estarian en la tabla de mi derecha por decirlo de alguna forma
 
-select * from Sales.SalesTerritory where 
-select * from Sales.SalesPerson as SP where sp.TerritoryID is null
 
 -- Adventure Works Ex.41
 --  From the following tables write a SQL query to retrieve the territory name and BusinessEntityID.
@@ -654,3 +652,61 @@ FROM Sales_CTE
 GROUP BY SalesYear, SalesPersonID -- Se crea una tabla derivada, con esto podemos sacar los atributos necesarios para poder usarlos luego
 ORDER BY SalesPersonID, SalesYear; -- se agrupa por salesYear para asi contar las ventas y con la agrupacion de salesPersonid logramos agrupar a la vez por id
 								-- por ultimo ordenamos por en sentido contrario por lo que asi traemos los datos de la primera consulta 
+
+
+-- Adventure Works Ex.47 
+-- From the following table write a query in SQL to find the average number of sales orders for all the years of the sales representatives
+
+ SELECT SH.SalesPersonID , COUNT(SalesOrderID) AS VENTAS , year(OrderDate) AS ANIO FROM Sales.SalesOrderHeader AS SH
+    WHERE SalesPersonID IS NOT NULL
+	GROUP BY  year(OrderDate), SalesPersonID
+	ORDER BY SalesPersonID
+
+WITH AVERAGE_SELL(SalesPersonID,TOTAL_SELL)
+AS
+(
+	SELECT SalesPersonID, COUNT(SalesOrderID) AS TOTAL_SELL FROM Sales.SalesOrderHeader AS SH
+    WHERE SalesPersonID IS NOT NULL
+	GROUP BY SalesPersonID
+
+)
+
+SELECT AVG(TOTAL_SELL) AS 'AVERAGE SALES PER PERSON' FROM AVERAGE_SELL
+
+
+-- Adventure Works Ex.48 
+-- Write a SQL query on the following table to retrieve records with the characters greena_ in the LargePhotoFileName field.
+-- The following table's columns must all be returned.
+
+SELECT *   
+FROM Production.ProductPhoto PPP
+WHERE PPP.LargePhotoFileName LIKE '%greena_%' ESCAPE 'a' ; -- para esto caso pudimos dejarle sin el greena en green, el escape se usa para obviar por decirlo de alguna forma
+-- lo que seria algun caracter.
+
+
+-- Adventure Works Ex.49
+-- Write a SQL query to retrieve the mailing address for any company that is outside the United States (US) and in a city whose name starts with Pa.
+-- Return Addressline1, Addressline2, city, postalcode, countryregioncode columns.
+
+select 
+	PA.AddressLine1,
+	CASE WHEN PA.AddressLine2 IS NULL THEN ''
+	ELSE PA.AddressLine2 
+	END AS AddressLine2,
+	PA.City,
+	PSP.CountryRegionCode,PA.PostalCode
+	from Person.Address as PA INNER JOIN
+	Person.StateProvince AS PSP ON
+	PA.StateProvinceID = PSP.StateProvinceID
+	WHERE PSP.CountryRegionCode <> 'US' AND PA.City LIKE 'Pa%'
+	ORDER BY PSP.CountryRegionCode DESC
+	
+
+-- Adventure Works Ex.50
+-- From the following table write a query in SQL to fetch first twenty rows. Return jobtitle, hiredate.
+-- Order the result set on hiredate column in descending order.
+
+SELECT TOP 20 JobTitle, HireDate  
+FROM HumanResources.Employee
+ORDER BY HireDate desc
+--FETCH FIRST 20 ROWS ONLY; este ultimo es usado para otro motro de base de datos
