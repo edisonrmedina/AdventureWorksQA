@@ -710,3 +710,256 @@ SELECT TOP 20 JobTitle, HireDate
 FROM HumanResources.Employee
 ORDER BY HireDate desc
 --FETCH FIRST 20 ROWS ONLY; este ultimo es usado para otro motro de base de datos
+
+
+--  Adventure Works Ex.51
+--  From the following tables write a SQL query to retrieve the orders with orderqtys greater than 5 or unitpricediscount less than 1000.
+--  and totaldues greater than 100. Return all the columns from the tables
+
+SELECT * 
+	FROM Sales.SalesOrderHeader AS SOH INNER JOIN 
+	Sales.SalesOrderDetail AS SOD ON
+	SOH.SalesOrderID = SOD.SalesOrderID
+	WHERE SOD.OrderQty > 5 OR SOD.UnitPriceDiscount < 1000 AND (SOH.TotalDue > 100)
+
+
+--  Adventure Works Ex.52
+--  From the following table write a query in SQL that searches for the word 'red' in the name column. Return name, and color columns from the table.
+
+-- DECLARE @SearchWord NVARCHAR(30)  
+-- SET @SearchWord = N'red'  
+-- Es una opcion para resolver pero no funciona para todos los motores de base de datos.
+
+SELECT Name, Color   
+FROM Production.Product 
+WHERE Name LIKE '%red%'
+
+
+-- Adventure Works Ex.53
+-- From the following table write a query in SQL to find all the products with a price of $80.99 that contain the word Mountain. Return name, and listprice columns from the table
+
+SELECT PINFO.Name, PINFO.ListPrice
+	FROM Production.Product AS PINFO 
+		WHERE PINFO.ListPrice = 80.99 AND 
+			  PINFO.Name LIKE '%Mountain%'
+
+-- Adventure Works Ex.54
+-- From the following table write a query in SQL to retrieve all the products that contain either the phrase Mountain or Road. Return name, and color columns
+
+SELECT PINFO.Name,
+	CASE WHEN PINFO.Color IS NULL THEN 'sin registro'
+	ELSE PINFO.color 
+	END AS Color
+	FROM Production.Product AS PINFO 
+		WHERE PINFO.Name LIKE '%Mountain%' OR 
+			  PINFO.Name LIKE '%Road%'
+
+
+-- Adventure Works Ex.55
+-- From the following table write a query in SQL to search for name which contains both the word 'Mountain' and the word 'Black'. Return Name and color.
+
+SELECT PINFO.Name,
+	CASE WHEN PINFO.Color IS NULL THEN 'sin registro'
+	ELSE PINFO.color 
+	END AS Color
+	FROM Production.Product AS PINFO 
+		WHERE PINFO.Name LIKE '%Mountain%' AND
+			  PINFO.Name LIKE '%Black%'
+
+-- Adventure Works Ex.56
+-- From the following table write a query in SQL to return all the product names with at least one word starting with the prefix 'chain' in the Name column
+
+SELECT PINFO.Name,
+	CASE WHEN PINFO.Color IS NULL THEN 'sin registro'
+	ELSE PINFO.color 
+	END AS Color
+	FROM Production.Product AS PINFO 
+		WHERE PINFO.Name LIKE '%chain%'
+
+-- Adventure Works Ex.57
+-- From the following table write a query in SQL to return all the product names with at least one word starting with the prefix 'chain' in the Name column
+
+SELECT PINFO.Name,
+	CASE WHEN PINFO.Color IS NULL THEN 'sin registro'
+	ELSE PINFO.color 
+	END AS Color
+	FROM Production.Product AS PINFO 
+		WHERE PINFO.Name LIKE '%chain%' OR PINFO.Name LIKE '%%'
+
+-- Adventure Works Ex.58
+-- From the following table write a SQL query to output an employee's name and email address, separated by a new line character
+
+SELECT 
+    CONCAT(CONCAT(PINFO.FirstName,CONCAT(' ',PINFO.LastName + ' ')),PEA.EmailAddress) AS USER_EMAIL
+	FROM Person.Person AS PINFO INNER JOIN Person.EmailAddress AS PEA ON
+	PINFO.BusinessEntityID = PEA.BusinessEntityID
+
+-- Adventure Works Ex.59
+-- CHARINDEX(substring, string, start)
+-- From the following table write a SQL query to locate the position of the string "yellow" where it appears in the product name.
+
+SELECT PROD.Name,
+	   CHARINDEX('Chain',PROD.Name) AS CHAR_INIT 
+	   FROM Production.Product AS PROD
+
+
+-- Adventure Works Ex.60
+-- From the following table write a query in SQL to concatenate the name, color, and productnumber columns.
+
+SELECT CONCAT( name, '   color:-',color,' Product Number:', productnumber ) AS result, color
+FROM production.product;
+
+-- Adventure Works Ex.61
+-- Write a SQL query that concatenate the columns name, productnumber, colour, and a new line character from the following table, each separated by a specified character.
+
+SELECT CONCAT_WS( ',', production.product.name, productnumber, color) AS DatabaseInfo
+FROM production.product;
+
+-- Adventure Works Ex.62
+-- From the following table write a query in SQL to return the five leftmost characters of each product name.
+
+SELECT SUBSTRING(PROD.Name,1,5) AS MOST_LEFT FROM  production.product AS PROD
+
+-- Adventure Works Ex.63
+-- From the following table write a query in SQL to select the number of characters and the data in FirstName for people located in Australia
+
+SELECT LEN(VVC.FirstName) AS COUNT_FIRST_NAME,
+	   VVC.FirstName,
+	   VVC.LastName 
+	   FROM Sales.vindividualcustomer VVC 
+	   WHERE VVC.CountryRegionName = 'Australia'
+
+
+-- Adventure Works Ex.64
+-- From the following tables write a query in SQL to return the number of characters in the column FirstName and the first and last name of contacts located in Australia
+
+SELECT DISTINCT LEN(FirstName) AS FNameLength, FirstName, LastName   
+FROM Sales.vstorewithcontacts  AS e  
+INNER JOIN Sales.vstorewithaddresses AS g   
+    ON e.businessentityid = g.businessentityid   
+WHERE CountryRegionName = 'Australia';
+
+
+-- Adventure Works Ex.65
+-- From the following table write a query in SQL to select product names that have prices between $1000.00 and $1220.00. Return product name as Lower, Upper, and also LowerUpper.
+
+SELECT LOWER(SUBSTRING(Name, 1, 25)) AS Lower,   
+       UPPER(SUBSTRING(Name, 1, 25)) AS Upper,   
+       LOWER(UPPER(SUBSTRING(Name, 1, 25))) As LowerUpper  
+FROM production.Product  
+WHERE standardcost between 1000.00 and 1220.00;
+
+-- Adventure Works Ex.66
+-- Write a query in SQL to remove the spaces from the beginning of a string. 
+
+SELECT  '   Texto con espacio incluido ' as "Original Text",
+LTRIM('   Texto con espacio incluido ') as "Without Spaces in the init or end";
+
+-- Adventure Works Ex.67
+-- From the following table write a query in SQL to remove the substring 'HN' from the start of the column productnumber.
+-- Filter the results to only show those productnumbers that start with "HN". Return original productnumber column and 'TrimmedProductnumber'.
+
+
+SELECT PROD.Name,
+	   REPLACE(SUBSTRING(Name,LEN('Mountain') + 1,LEN(Name)),'-','') AS REST
+	   FROM production.Product AS PROD
+	   WHERE PROD.Name LIKE 'Mountain%' 
+
+-- Adventure Works Ex.68
+-- From the following table write a query in SQL to repeat a 0 character four times in front of a production line for production line 'T'.
+-- exists certain built-function that are different with respect transact sql or pure sql
+
+SELECT Name , concat(REPLICATE('0', 4) , ProductLine) AS "Line Code" 
+FROM Production.Product  
+WHERE ProductLine = 'T'  
+ORDER BY Name;
+
+-- Adventure Works Ex.69
+-- From the following table write a SQL query to retrieve all contact first names with the characters inverted for people whose businessentityid is less than 6
+
+SELECT FirstName, REVERSE(FirstName) AS Reverse  
+FROM Person.Person  
+WHERE BusinessEntityID < 6 
+ORDER BY FirstName;
+
+-- Adventure Works Ex.70
+-- From the following table write a query in SQL to return the eight rightmost characters of each name of the product. Also return name, productnumber column.
+-- Sort the result set in ascending order on productnumber.
+
+SELECT SUBSTRING(PROD.Name,LEN(PROD.Name)-8,LEN(PROD.Name)) AS RIGHT_MOST FROM  production.product AS PROD WHERE LEN(PROD.Name) > 8
+
+-- Adventure Works Ex.71
+-- Write a query in SQL to remove the spaces at the end of a string. 
+
+SELECT  '   Texto con espacio incluido ' as "Original Text",
+LTRIM('   Texto con espacio incluido ') as "Without Spaces in the init or end";
+
+
+-- Adventure Works Ex.71
+--A "Single Item Order" is a customer order where only one item is ordered. Show the SalesOrderID and the UnitPrice for every Single Item Order.
+
+
+WITH ID_ONE_SELL (SalesOrderID,Cantidad,UnitPrice)
+AS (
+	SELECT SOD.SalesOrderID , COUNT(*) AS cantidad , SOD.UnitPrice FROM Sales.SalesOrderDetail as SOD 
+	GROUP BY SOD.SalesOrderID,SOD.UnitPrice
+	HAVING  COUNT(*)  = 1
+)
+
+SELECT SalesOrderID , UnitPrice FROM ID_ONE_SELL
+
+
+-- Adventure Works Ex.72
+-- For every customer with a 'Main Office' in Dallas show AddressLine1 of the 'Main Office' and AddressLine1 of the 'Shipping' address - if there is no shipping address leave it blank. Use one row per customer.
+
+--SELECT VSWA.AddressLine1, BillToAddressID  ,* FROM Sales.SalesOrderHeader SOH INNER JOIN Sales.Customer SCU  ON SOH.CustomerID = SCU.CustomerID
+--INNER JOIN Sales.vStoreWithAddresses VSWA ON SOH.BillToAddressID = VSWA.BusinessEntityID 
+--WHERE VSWA.City LIKE 'Dallas'
+
+--SELECT SOH.ShipToAddressID  ,* FROM Sales.SalesOrderHeader SOH INNER JOIN Sales.Customer SCU  ON SOH.CustomerID = SCU.CustomerID
+--INNER JOIN Sales.vStoreWithAddresses VSWA ON SOH.BillToAddressID = VSWA.BusinessEntityID 
+--WHERE VSWA.City LIKE 'Dallas'
+-- no esta muy clara 
+
+
+-- Adventure Works Ex.73
+-- Show the best selling item by value.
+
+-- forma 1 
+select * from Production.Product where ProductID in (
+	select ProductID from (select top 1 ProductID, sum(LineTotal) as totalFacturado from Sales.SalesOrderDetail
+	group by ProductID order by totalFacturado desc	) a
+	) 
+
+-- forma 2
+
+with id_most_selling (id,total) as (
+	select top 1 ProductID, sum(LineTotal) as totalFacturado from Sales.SalesOrderDetail
+	group by ProductID order by totalFacturado desc
+)
+
+-- Adventure Works Ex.74
+
+select * from Production.Product where ProductID in (select id from id_most_selling)
+
+-- Adventure Works Ex.75
+
+SELECT BusinessEntityID, FirstName, MiddleName, LastName
+FROM Person.Person
+WHERE MiddleName LIKE '[E,B]'; -- este nos sirve como una especie de lista de donde se pueden sacar valores para discriminar
+
+-- Adventure Works Ex.76
+
+SELECT LastName
+FROM Person.Person
+WHERE LastName LIKE 'Ja%es'; --- % cualquier cantidad de caracteres que reemplace el %
+
+-- Adventure Works Ex.77
+
+SELECT LastName
+FROM Person.Person
+WHERE LastName LIKE 'Ja_es'; -- _ solo va a poder ser reemplazado por uno
+
+-- Adventure Works Ex.78
+
+SELECT COALESCE ('Shobha','Shivakumar')
